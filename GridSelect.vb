@@ -67,7 +67,7 @@ Namespace GeonBit.UI.Entities
 
             'Make sure the Dot stays inside the GridSelect
             If (Point.X <> OldPoint.X) OrElse (Point.Y <> OldPoint.Y) Then
-                Dim DotTexture As Texture2D = Tetra.Tetra.Instance.Extender.GridSelectDotTextures(_skin)
+                Dim DotTexture As Texture2D = Game.Instance.Extender.GridSelectDotTextures(_skin)
                 Dim DotAlignWidth As Integer = CInt(DotTexture.Width / 2)
                 Dim DotAlignHeight As Integer = CInt(DotTexture.Height / 2)
                 Dim MaxX As Integer = CInt(Size.X)
@@ -131,9 +131,9 @@ Namespace GeonBit.UI.Entities
         ''' <summary>Draw the entity.</summary>
         ''' <param name="spriteBatch">Sprite batch to draw on.</param>
         Protected Overrides Sub DrawEntity(ByVal spriteBatch As SpriteBatch)
-            Dim Texture As Texture2D = Tetra.Tetra.Instance.Extender.GridSelectTextures(_skin)
-            Dim DotTexture As Texture2D = Tetra.Tetra.Instance.Extender.GridSelectDotTextures(_skin)
-            Dim Data As DataTypes.TextureData = Tetra.Tetra.Instance.Extender.GridSelectData(CInt(_skin))
+            Dim Texture As Texture2D = Game.Instance.Extender.GridSelectTextures(_skin)
+            Dim DotTexture As Texture2D = Game.Instance.Extender.GridSelectDotTextures(_skin)
+            Dim Data As DataTypes.TextureData = Game.Instance.Extender.GridSelectData(CInt(_skin))
             UserInterface.Active.DrawUtils.DrawSurface(spriteBatch, Texture, _destRect, New Vector2(Data.FrameWidth, Data.FrameHeight), 1, FillColor)
             Dim DotDest As Rectangle = New Rectangle((_destRect.X + Point.X), (_destRect.Y + Point.Y), DotTexture.Width, DotTexture.Height)
             UserInterface.Active.DrawUtils.DrawImage(spriteBatch, DotTexture, DotDest, FillColor)
