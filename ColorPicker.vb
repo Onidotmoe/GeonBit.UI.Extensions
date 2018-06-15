@@ -269,9 +269,9 @@ Namespace GeonBit.UI.Entities
             Image_Main_HSB = _HSB
             Image_SliderColor_HSB = _HSB
 
-            Dim TransparentBackgroundPlaceholder As Texture2D = Tetra.Tetra.Instance.Content.Load(Of Texture2D)(Tetra.Tetra.Instance.GUIRoot & Tetra.Tetra.Instance.Theme & "/textures/TransparentBackgroundPlaceholder")
+            Dim TransparentBackgroundPlaceholder As Texture2D = Game.Instance.Content.Load(Of Texture2D)(Game.Instance.GUIRoot & Game.Instance.Theme & "/textures/TransparentBackgroundPlaceholder")
 
-            Background = New ColoredRectangle(Tetra.Tetra.GetService(Of Globals).GiveItem(Of Dictionary.Brush)("CA00").Color, Size, TopLeft)
+            Background = New ColoredRectangle(Color.Black, Size, TopLeft)
             Button_OK = New Button("Ok", TopLeft, New Vector2((Size.X * 0.18F), (Size.Y * 0.11F)), New Vector2(Column_X4, Row_Y0)) With {.Scale = 0.5F, .OnClick = Sub() Button_OK_Click()}
             Button_Cancel = New Button("Cancel", TopLeft, New Vector2((Size.X * 0.18F), (Size.Y * 0.11F)), New Vector2(Column_X4, Row_Y1)) With {.Scale = 0.5F, .OnClick = Sub() Button_Cancel_Click()}
 
@@ -667,7 +667,7 @@ Namespace GeonBit.UI.Entities
             Dim Width As Integer = Old.Width
             Dim Height As Integer = Old.Height
             Dim Data As Color() = New Color(Width * Height - 1) {}
-            Dim Texture As Texture2D = New Texture2D(Tetra.Tetra.Instance.GraphicsDevice, Width, Height)
+            Dim Texture As Texture2D = New Texture2D(Game.Instance.GraphicsDevice, Width, Height)
 
             'XY needs to be relative to the ColorComponent's MinMax values.
             'Keep in mind that the actual selected value isn't represented here as that value is constant; until changed with the slider.
@@ -731,7 +731,7 @@ Namespace GeonBit.UI.Entities
             Dim Width As Integer = Old.Width
             Dim Height As Integer = Old.Height
             Dim Data As Color() = New Color(Width * Height - 1) {}
-            Dim Texture As Texture2D = New Texture2D(Tetra.Tetra.Instance.GraphicsDevice, Width, Height)
+            Dim Texture As Texture2D = New Texture2D(Game.Instance.GraphicsDevice, Width, Height)
 
             Parallel.For(0, Height, Sub(Y)
                                         Dim Color As Color
@@ -782,7 +782,7 @@ Namespace GeonBit.UI.Entities
             Dim Width As Integer = Old.Width
             Dim Height As Integer = Old.Height
             Dim Data As Color() = New Color(Width * Height - 1) {}
-            Dim Texture As Texture2D = New Texture2D(Tetra.Tetra.Instance.GraphicsDevice, Width, Height)
+            Dim Texture As Texture2D = New Texture2D(Game.Instance.GraphicsDevice, Width, Height)
             Dim Base As Color = RGBToColor(CurrentColor)
             Dim Relative_Y As Double = (255 / Height)
 
