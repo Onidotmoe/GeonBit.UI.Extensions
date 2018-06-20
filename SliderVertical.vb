@@ -106,9 +106,9 @@ Namespace GeonBit.UI.Entities
         ''' <summary>Draw the entity.</summary>
         ''' <param name="spriteBatch">Sprite batch to draw on.</param>
         Protected Overrides Sub DrawEntity(ByVal spriteBatch As SpriteBatch)
-            Dim Texture As Texture2D = Tetra.Tetra.Instance.Extender.SliderVerticalTextures(_skin)
-            Dim MarkTexture As Texture2D = Tetra.Tetra.Instance.Extender.SliderVerticalMarkTextures(_skin)
-            Dim Data As DataTypes.TextureData = Tetra.Tetra.Instance.Extender.SliderVerticalData(CInt(_skin))
+            Dim Texture As Texture2D = Game.Instance.Extender.SliderVerticalTextures(_skin)
+            Dim MarkTexture As Texture2D = Game.Instance.Extender.SliderVerticalMarkTextures(_skin)
+            Dim Data As DataTypes.TextureData = Game.Instance.Extender.SliderVerticalData(CInt(_skin))
             Dim FrameHeight As Single = Data.FrameHeight
             UserInterface.Active.DrawUtils.DrawSurface(spriteBatch, Texture, _destRect, New Vector2(0F, FrameHeight), 1, FillColor)
             Dim frameSizeTexture As Vector2 = New Vector2(Texture.Width, Texture.Height * FrameHeight)
