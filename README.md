@@ -20,6 +20,10 @@ Some minor changes that either have been done or need further testing/work.
 ## SliderVertical
 Just a vertical version of the existing Slider control, demonstrated again in the colorpicker.
 
+## TitleBar
+Allows movement of the entire window similar to the default windows titlebar.
+You can safely set "Window.IsBorderless = True" and get a custom look to your game.
+
 ### Note
 Changes that fix or add more things could happen.
 Like improving on the font rendering in the colorpicker.
