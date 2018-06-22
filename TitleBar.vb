@@ -23,7 +23,7 @@ Namespace Dictionary
         Private Backwards As Single
         Private Size As Vector2
         Private MousePosition_Last As Point
-        Private WindowPosition_Last As Point
+        Private MousePosition_Start As Point
         Private IsMoving As Boolean
         Public Property Button_Menu As Button
         Public Property Button_Close As Button
@@ -181,23 +181,21 @@ Namespace Dictionary
             Dim CurrentMousePosition = New Point(System.Windows.Forms.Cursor.Position.X, System.Windows.Forms.Cursor.Position.Y)
 
             If (MousePosition_Last <> CurrentMousePosition) Then
+                Dim RelativeMousePosition = Input.Mouse.GetState.Position
                 Dim Movement As New Point
 
-                If (CurrentMousePosition.X < MousePosition_Last.X) Then
-                    Movement.X = (CurrentMousePosition.X - MousePosition_Last.X)
+                If (RelativeMousePosition.X < MousePosition_Start.X) Then
+                    Movement.X = (RelativeMousePosition.X - MousePosition_Start.X)
                 Else
-                    Movement.X = System.Math.Abs(MousePosition_Last.X - CurrentMousePosition.X)
+                    Movement.X = System.Math.Abs(MousePosition_Start.X - RelativeMousePosition.X)
                 End If
-                If (CurrentMousePosition.Y < MousePosition_Last.Y) Then
-                    Movement.Y = (CurrentMousePosition.Y - MousePosition_Last.Y)
+                If (RelativeMousePosition.Y < MousePosition_Start.Y) Then
+                    Movement.Y = (RelativeMousePosition.Y - MousePosition_Start.Y)
                 Else
-                    Movement.Y = System.Math.Abs(MousePosition_Last.Y - CurrentMousePosition.Y)
+                    Movement.Y = System.Math.Abs(MousePosition_Start.Y - RelativeMousePosition.Y)
                 End If
 
-                Game.Instance.Window.Position = (WindowPosition_Last + Movement)
-
-                WindowPosition_Last = Game.Instance.Window.Position
-                MousePosition_Last = New Point(System.Windows.Forms.Cursor.Position.X, System.Windows.Forms.Cursor.Position.Y)
+                Tetra.Tetra.Instance.Window.Position += Movement
             End If
         End Sub
 
