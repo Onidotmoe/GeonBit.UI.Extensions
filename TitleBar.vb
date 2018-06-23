@@ -103,8 +103,7 @@ Namespace Dictionary
             _Exit.Visible = False
         End Sub
         Sub Button_Minimize_OnClick()
-            'TODO : The below causes a crash
-            '  Game.Instance.AsWindow.WindowState = System.Windows.Forms.FormWindowState.Minimized
+            Minimize()
         End Sub
         Public Overrides Sub Update(GameTime As GameTime)
             If (Not TitleBar_MovementDone) Then
@@ -199,6 +198,13 @@ Namespace Dictionary
             End If
         End Sub
 
+        Public Shared Sub Minimize()
+            SDL_MinimizeWindow(Game.Instance.Window.Handle)
+        End Sub
+
+            'Add this to your Game class, should only work on windows
+        <Runtime.InteropServices.DllImport("SDL2.dll", CallingConvention:=Runtime.InteropServices.CallingConvention.Cdecl)>
+        Private Shared Sub SDL_MinimizeWindow(Window As IntPtr) : End Sub
     End Class
 
 End Namespace
