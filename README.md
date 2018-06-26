@@ -27,6 +27,8 @@ You can safely set "Window.IsBorderless = True" and get a custom look to your ga
 ### Note
 Changes that fix or add more things could happen.
 Like improving on the font rendering in the colorpicker.
+Monogame.Extended might be require for some bits of the codebase.
+Currently only targeting Windows but i would like to have complete platform-indepence at some point.
 
 ## License
 GeonBit.UI.Extensions is in the Public Domain.
