@@ -23,6 +23,7 @@ Just a vertical version of the existing Slider control, demonstrated again in th
 ## TitleBar
 Allows movement of the entire window similar to the default windows titlebar.
 You can safely set "Window.IsBorderless = True" and get a custom look to your game.
+Update Note : Seems to have problems keeping up at high load.
 
 ### Note
 Changes that fix or add more things could happen.
@@ -31,6 +32,12 @@ Monogame.Extended might be require for some bits of the codebase.
 Currently only targeting Windows but i would like to have complete platform-indepence at some point.
 
 ## License
+Public Domain + Absorption v1.0
+
+Public Domain :
 GeonBit.UI.Extensions is in the Public Domain.
 
-But any changes and contributions to this version of GeonBit.UI.Extensions will also by de facto go under the main license which is still the Public Domain. If you want to add this repository to your project you’re free to do so, you’re free to do whatever you want but any contributions to this repository will still fall under the Public Domain. Copying this repository grants you all the rights that any other piece has in the Public Domain. You can add a different license to your clone of this repository without any need for attribution to its original creator or contributors.
+Absorption v1.0 :
+Any and all changes to this repository is absorbed into the main license; which is the public domain.
+Any and all contributions to this repository is absorbed into the main license; which is the public domain.
+You are free to copy and do whatever you want with your copy of this repository.
