@@ -23,13 +23,21 @@ Just a vertical version of the existing Slider control, demonstrated again in th
 ## TitleBar
 Allows movement of the entire window similar to the default windows titlebar.
 You can safely set "Window.IsBorderless = True" and get a custom look to your game.
+
 Update Note : Seems to have problems keeping up at high load.
+
+## SelectEntity
+Allows generic Entities to be used for selection.
 
 ### Note
 Changes that fix or add more things could happen.
 Like improving on the font rendering in the colorpicker.
 Monogame.Extended might be require for some bits of the codebase.
 Currently only targeting Windows but i would like to have complete platform-indepence at some point.
+
+### Important Note
+I've changed alot in the code i'm using for my own project which will be replacing most of the codebase currently up.
+You might want to wait with using this repo till those updates have been pushed.
 
 ## License
 Public Domain + Absorption v1.0

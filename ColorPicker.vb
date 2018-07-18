@@ -5,7 +5,7 @@ Imports GeonBit.UI.Entities
 Imports Microsoft.Xna.Framework
 Imports Microsoft.Xna.Framework.Graphics
 
-Namespace GeonBit.UI.Entities
+Namespace Extensions
 
     Public Class ColorPicker
         Inherits Entity
@@ -14,7 +14,7 @@ Namespace GeonBit.UI.Entities
         ''' <summary>Currently calculated destination rect (eg the region this entity Is drawn on).</summary>
         Public Shadows _destRect As Rectangle
 
-        Private GridSelect As GridSelect
+        Private Select2D As Select2D
         Private Image_Main As Image
         Private Image_SliderColor As Image
         Private Image_SliderOpacity As Image
@@ -187,7 +187,6 @@ Namespace GeonBit.UI.Entities
         Private Size_Radio As Vector2
         Private Label_Invalid As Label
 
-        Public DialogResult As DialogResult
         Protected _renderTarget As RenderTarget2D = Nothing
         Private _SliderColor_Value As Integer
 
@@ -212,6 +211,17 @@ Namespace GeonBit.UI.Entities
                 _SliderOpacity_Value = CInt(SliderOpacity.Max - Value)
             End Set
         End Property
+        Public OnDialogResultChange As GeonBit.UI.EventCallback = Nothing
+        Private _DialogResult As DialogResult
+        Property DialogResult As DialogResult
+            Get
+                Return _DialogResult
+            End Get
+            Set
+                _DialogResult = Value
+                OnDialogResultChange?.Invoke(Me)
+            End Set
+        End Property
 
         ''' <summary>A scalable advance colorpicker.</summary>
         ''' <param name="Width">Will ignore size if set.</param>
@@ -230,10 +240,15 @@ Namespace GeonBit.UI.Entities
             End If
 
             Me.Size = Size
-            Size_Input = New Vector2(CSng(Size.X * 0.15), CSng(Size.Y * 0.05))
-            Size_Radio = New Vector2(CSng(Size.X * 0.05), CSng(Size.Y * 0.05))
+            Size_Input = New Vector2((Size.X * 0.15F), (Size.Y * 0.05F))
+            Size_Radio = New Vector2((Size.X * 0.05F), (Size.Y * 0.05F))
             Me._offset = Offset
             InitializeComponent(StartingColor)
+
+            If (Not OkCancelVisible) Then
+                Button_OK.Visible = False
+                Button_Cancel.Visible = False
+            End If
         End Sub
 
         Private Sub InitializeComponent(StartingColor As Color)
@@ -269,9 +284,9 @@ Namespace GeonBit.UI.Entities
             Image_Main_HSB = _HSB
             Image_SliderColor_HSB = _HSB
 
-            Dim TransparentBackgroundPlaceholder As Texture2D = Game.Instance.Content.Load(Of Texture2D)(Game.Instance.GUIRoot & Game.Instance.Theme & "/textures/TransparentBackgroundPlaceholder")
+            Dim TransparentBackgroundPlaceholder As Texture2D = YOURGAME.Instance.Content.Load(Of Texture2D)(YOURGAME.GUIRoot & YOURGAME.Instance.Theme & "/textures/TransparentBackgroundPlaceholder")
 
-            Background = New ColoredRectangle(Color.Black, Size, TopLeft)
+            Background = New ColoredRectangle(YOURGAME.GetService(Of Globals).GiveItem(Of Dictionary.Brush)("CA00").Color, Size, TopLeft)
             Button_OK = New Button("Ok", TopLeft, New Vector2((Size.X * 0.18F), (Size.Y * 0.11F)), New Vector2(Column_X4, Row_Y0)) With {.Scale = 0.5F, .OnClick = Sub() Button_OK_Click()}
             Button_Cancel = New Button("Cancel", TopLeft, New Vector2((Size.X * 0.18F), (Size.Y * 0.11F)), New Vector2(Column_X4, Row_Y1)) With {.Scale = 0.5F, .OnClick = Sub() Button_Cancel_Click()}
 
@@ -315,24 +330,24 @@ Namespace GeonBit.UI.Entities
             TextInput_Key = New TextInput(MultiLine, Size_Input, TopLeft, New Vector2(Column_X6, Row_Y8)) With {.Scale = Scale_Input, .CharactersLimit = CharLimit, .OnValueChange = Sub() TextInput_Key_OnValueChange()}
 
             Checkbox_WebColorsOnly = New CheckBox("Only Web Colors", TopLeft, New Vector2((Size.X * 0.3F), (Size.Y * 0.2F)), New Vector2((Size.Y * 0.05F), (Size.Y * 0.8F))) With {.Scale = 0.5F, .OnValueChange = Sub() Checkbox_WebColorsOnly_CheckedChanged()}
+            Checkbox_WebColorsOnly.Padding = New Vector2((Checkbox_WebColorsOnly.Size.X * 0.05F), 0)
             TextInput_HTML = New TextInput(False, New Vector2(Size_Input.X, (Size.Y * 0.08F)), TopLeft, New Vector2(Column_X3, (Size.Y * 0.78F))) With {.LimitBySize = False, .CharactersLimit = 8, .OnValueChange = Sub() TextInput_HTML_OnValueChange()}
             TextInput_Opacity = New TextInput(False, New Vector2(Size_Input.X, (Size.Y * 0.08F)), TopLeft, New Vector2((Size.X * 0.38F), (Size.Y * 0.78F))) With {.LimitBySize = False, .CharactersLimit = CharLimit, .OnValueChange = Sub() TextInput_Opacity_OnValueChange()}
             Label_Invalid = New Label("Hello there...", TopLeft, New Vector2((Size.X * 0.6F), (Size.Y * 0.1F)), New Vector2((Size.X * 0.35F), (Size.Y * 0.88F))) With {.Scale = Scale_Label}
 
-            SliderColor = New SliderVertical(0, 255, New Vector2((Size.X * 0.05F), (Size.X * 0.35F)), TopLeft, New Vector2((Size.X * 0.38F), Row_Y0), skin:=SliderVerticalSkin.MarkOnly) With {.OnValueChange = Sub() SliderColor_OnValueChange(), .Padding = Vector2.Zero}
+            SliderColor = New SliderVertical(0, 255, New Vector2((Size.X * 0.05F), (Size.X * 0.35F)), TopLeft, New Vector2((Size.X * 0.38F), Row_Y0), skin:=SliderVerticalSkin.MarkOnly) With {.OnValueChange = Sub() SliderColor_OnValueChange()}
             Image_SliderColor = New Image(CreateTexture(CInt(SliderColor.Size.X * 0.8F), CInt(SliderColor.Size.Y), Color.Transparent), New Vector2((SliderColor.Size.X * 0.8F), SliderColor.Size.Y), offset:=New Vector2(CInt(SliderColor.Size.X * 0.1F), 0))
             Image_SliderColor.Texture = GetColorMapSlider(Image_SliderColor.Texture, Image_SliderColor_HSB)
             SliderColor.Background = Image_SliderColor
 
-            SliderOpacity = New SliderVertical(0, 255, SliderColor.Size, TopLeft, New Vector2((Size.X * 0.43F), Row_Y0), skin:=SliderVerticalSkin.MarkOnly) With {.OnValueChange = Sub() SliderOpacity_OnValueChange(), .Padding = Vector2.Zero}
+            SliderOpacity = New SliderVertical(0, 255, SliderColor.Size, TopLeft, New Vector2((Size.X * 0.43F), Row_Y0), skin:=SliderVerticalSkin.MarkOnly) With {.OnValueChange = Sub() SliderOpacity_OnValueChange()}
             Image_SliderOpacity = New Image(CreateTexture(CInt(SliderOpacity.Size.X * 0.8F), CInt(SliderOpacity.Size.Y), Color.Transparent), New Vector2(CInt(SliderOpacity.Size.X * 0.8F), CInt(SliderOpacity.Size.Y)), offset:=New Vector2(CInt(SliderOpacity.Size.X * 0.08F), 0))
             SliderOpacity.Background = Image_SliderOpacity
             Image_SliderOpacity.Background = New Image(TransparentBackgroundPlaceholder, New Vector2(CInt(SliderOpacity.Size.X * 0.75F), CInt(SliderOpacity.Size.Y)), drawMode:=ImageDrawMode.Panel, offset:=New Vector2(1, 0))
-            Image_SliderOpacity.Padding = Vector2.Zero
 
-            GridSelect = New GridSelect(New Vector2((Size.X * 0.35F), (Size.X * 0.35F)), anchor:=TopLeft, offset:=New Vector2(Column_X0, Row_Y0)) With {.OnValueChange = Sub() GridSelect_OnValueChange(), .Padding = Vector2.Zero}
-            Image_Main = New Image(CreateTexture(CInt(GridSelect.Size.X), CInt(GridSelect.Size.Y), Color.Transparent), GridSelect.Size, anchor:=TopLeft)
-            GridSelect.Background = Image_Main
+            Select2D = New Select2D(New Vector2((Size.X * 0.35F), (Size.X * 0.35F)), anchor:=TopLeft, offset:=New Vector2(Column_X0, Row_Y0)) With {.OnValueChange = Sub() Select2D_OnValueChange()}
+            Image_Main = New Image(CreateTexture(CInt(Select2D.Size.X), CInt(Select2D.Size.Y), Color.Transparent), Select2D.Size, anchor:=TopLeft)
+            Select2D.Background = Image_Main
 
             Label_Hue_Symbol = New Label("°", TopLeft, offset:=New Vector2((Column_X3 + SymbolOffsetMod), Row_Y2)) With {.Scale = Scale_Label}
             Label_Saturation_Symbol = New Label("%", TopLeft, offset:=New Vector2((Column_X3 + SymbolOffsetMod), Row_Y3)) With {.Scale = Scale_Label}
@@ -349,8 +364,8 @@ Namespace GeonBit.UI.Entities
             Panel_CurrentNew = New Panel(New Vector2((Size.X * 0.15F), (Size.Y * 0.3F)), anchor:=TopLeft, offset:=New Vector2(Column_X3, Row_Y0))
             Label_New = New Label("new", TopLeft, New Vector2((Panel_CurrentNew.Size.X * 0.8F), (Panel_CurrentNew.Size.Y * 0.1F)), offset:=New Vector2((Panel_CurrentNew.Size.X * 0.1F), (Panel_CurrentNew.Size.Y * 0.03F))) With {.Scale = 0.8F, .AlignToCenter = True}
             Label_Current = New Label("current", TopLeft, New Vector2((Panel_CurrentNew.Size.X * 0.8F), (Panel_CurrentNew.Size.Y * 0.1F)), offset:=New Vector2((Panel_CurrentNew.Size.X * 0.1F), (Panel_CurrentNew.Size.Y * 0.8F))) With {.Scale = 0.8F, .AlignToCenter = True}
-            Image_New = New Image(CreateTexture(0, 0, Color.Black), New Vector2((Panel_CurrentNew.Size.X * 0.8F), (Panel_CurrentNew.Size.Y * 0.3F)), anchor:=TopLeft, offset:=New Vector2((Panel_CurrentNew.Size.X * 0.1F), (Panel_CurrentNew.Size.Y * 0.2F))) With {.Padding = Vector2.Zero}
-            Image_Current = New Image(CreateTexture(0, 0, Color.Black), New Vector2((Panel_CurrentNew.Size.X * 0.8F), (Panel_CurrentNew.Size.Y * 0.3F)), anchor:=TopLeft, offset:=New Vector2((Panel_CurrentNew.Size.X * 0.1F), (Panel_CurrentNew.Size.Y * 0.5F))) With {.Padding = Vector2.Zero}
+            Image_New = New Image(CreateTexture(0, 0, Color.Black), New Vector2((Panel_CurrentNew.Size.X * 0.8F), (Panel_CurrentNew.Size.Y * 0.3F)), anchor:=TopLeft, offset:=New Vector2((Panel_CurrentNew.Size.X * 0.1F), (Panel_CurrentNew.Size.Y * 0.2F)))
+            Image_Current = New Image(CreateTexture(0, 0, Color.Black), New Vector2((Panel_CurrentNew.Size.X * 0.8F), (Panel_CurrentNew.Size.Y * 0.3F)), anchor:=TopLeft, offset:=New Vector2((Panel_CurrentNew.Size.X * 0.1F), (Panel_CurrentNew.Size.Y * 0.5F)))
             Image_New.Background = New Image(TransparentBackgroundPlaceholder, Image_New.Size, anchor:=TopLeft, drawMode:=ImageDrawMode.Panel, offset:=Vector2.Zero)
             Image_Current.Background = New Image(TransparentBackgroundPlaceholder, Image_Current.Size, anchor:=TopLeft, drawMode:=ImageDrawMode.Panel, offset:=Vector2.Zero)
 
@@ -361,7 +376,7 @@ Namespace GeonBit.UI.Entities
 
             RadioButton_Hue.Checked = True
 
-            AddChild(GridSelect)
+            AddChild(Select2D)
             AddChild(Button_OK)
             AddChild(Button_Cancel)
 
@@ -449,19 +464,21 @@ Namespace GeonBit.UI.Entities
             Image_SliderColor.Texture = GetColorMapSlider(Image_SliderColor.Texture, Image_SliderColor_HSB)
         End Sub
 
-#Region "Exit/Close"
+#Region "Show/Close"
 
+        Sub Show()
+            GeonBit.UI.UserInterface.Active.AddEntity(Me).BringToFront()
+        End Sub
         Private Sub Button_OK_Click()
             DialogResult = DialogResult.OK
-            Close()
         End Sub
 
         Private Sub Button_Cancel_Click()
             DialogResult = DialogResult.Cancel
-            Close()
         End Sub
 
-        Private Sub Close()
+        Public Sub Close()
+            RemoveFromParent()
             Dispose()
         End Sub
 
@@ -475,7 +492,6 @@ Namespace GeonBit.UI.Entities
                 _renderTarget = Nothing
             End If
         End Sub
-
 #End Region
 
         Private Sub UpdateTextBoxes()
@@ -504,7 +520,7 @@ Namespace GeonBit.UI.Entities
             End If
         End Sub
 
-        Private Sub GridSelect_OnValueChange()
+        Private Sub Select2D_OnValueChange()
             GetColor()
 
             If ((Not (Image_ColorComponent = ColorComponent.Lightness)) AndAlso (Not (Image_ColorComponent = ColorComponent.Green_Red)) AndAlso (Not (Image_ColorComponent = ColorComponent.Blue_Yellow))) Then
@@ -632,8 +648,8 @@ Namespace GeonBit.UI.Entities
 
         Private Sub GetColor()
             Dim HSB As HSB = Nothing
-            Dim X = GridSelect.RelativeValue.X
-            Dim Y = GridSelect.RelativeValue.Y
+            Dim X = Select2D.RelativeValue.X
+            Dim Y = Select2D.RelativeValue.Y
 
             Select Case Image_ColorComponent
                 Case ColorComponent.Hue
@@ -667,7 +683,7 @@ Namespace GeonBit.UI.Entities
             Dim Width As Integer = Old.Width
             Dim Height As Integer = Old.Height
             Dim Data As Color() = New Color(Width * Height - 1) {}
-            Dim Texture As Texture2D = New Texture2D(Game.Instance.GraphicsDevice, Width, Height)
+            Dim Texture As Texture2D = New Texture2D(YOURGAME.Instance.GraphicsDevice, Width, Height)
 
             'XY needs to be relative to the ColorComponent's MinMax values.
             'Keep in mind that the actual selected value isn't represented here as that value is constant; until changed with the slider.
@@ -731,7 +747,7 @@ Namespace GeonBit.UI.Entities
             Dim Width As Integer = Old.Width
             Dim Height As Integer = Old.Height
             Dim Data As Color() = New Color(Width * Height - 1) {}
-            Dim Texture As Texture2D = New Texture2D(Game.Instance.GraphicsDevice, Width, Height)
+            Dim Texture As Texture2D = New Texture2D(YOURGAME.Instance.GraphicsDevice, Width, Height)
 
             Parallel.For(0, Height, Sub(Y)
                                         Dim Color As Color
@@ -782,7 +798,7 @@ Namespace GeonBit.UI.Entities
             Dim Width As Integer = Old.Width
             Dim Height As Integer = Old.Height
             Dim Data As Color() = New Color(Width * Height - 1) {}
-            Dim Texture As Texture2D = New Texture2D(Game.Instance.GraphicsDevice, Width, Height)
+            Dim Texture As Texture2D = New Texture2D(YOURGAME.Instance.GraphicsDevice, Width, Height)
             Dim Base As Color = RGBToColor(CurrentColor)
             Dim Relative_Y As Double = (255 / Height)
 
@@ -823,7 +839,7 @@ Namespace GeonBit.UI.Entities
 
             If (Text.Length <= 0) Then
                 HasIllegalCharacter = True
-            ElseIf (Text.Length < 8) OrElse (text.Length > 8) Then
+            ElseIf (Text.Length < 8) OrElse (Text.Length > 8) Then
                 Label_Invalid.Text = "Hex must be 8 characters in lenght."
                 WriteHexData(_RGB)
                 Exit Sub
@@ -1322,44 +1338,11 @@ Namespace GeonBit.UI.Entities
 #Region "Converters"
 
         Private Sub WriteHexData(RGB As RGB)
-            Dim Color = RGBToColor(RGB)
-            Dim Red As String = Convert.ToString(Color.R, 16)
-            Dim Green As String = Convert.ToString(Color.G, 16)
-            Dim Blue As String = Convert.ToString(Color.B, 16)
-            Dim Alpha As String = Convert.ToString(Convert.ToByte(_Alpha), 16)
-
-            If (Red.Length < 2) Then
-                Red = ("0" & Red)
-            End If
-            If (Green.Length < 2) Then
-                Green = ("0" & Green)
-            End If
-            If (Blue.Length < 2) Then
-                Blue = ("0" & Blue)
-            End If
-            If (Alpha.Length < 2) Then
-                Alpha = ("0" & Alpha)
-            End If
-
-            TextInput_HTML.Value = (Alpha.ToUpper() & Red.ToUpper() & Green.ToUpper() & Blue.ToUpper())
+            TextInput_HTML.Value = ToStringHexData(RGB, _Alpha)
         End Sub
 
         Private Function ParseHexData(Hex_Data As String) As RGB
-            Hex_Data = "00000000" & Hex_Data
-            Hex_Data = Hex_Data.Remove(0, Hex_Data.Length - 8)
-            Dim R_Text, G_Text, B_Text, A_Text As String
-            Dim R, G, B, A As Integer
-            A_Text = Hex_Data.Substring(0, 2)
-            R_Text = Hex_Data.Substring(2, 2)
-            G_Text = Hex_Data.Substring(4, 2)
-            B_Text = Hex_Data.Substring(6, 2)
-            R = Integer.Parse(R_Text, Globalization.NumberStyles.HexNumber)
-            G = Integer.Parse(G_Text, Globalization.NumberStyles.HexNumber)
-            B = Integer.Parse(B_Text, Globalization.NumberStyles.HexNumber)
-            A = Integer.Parse(A_Text, Globalization.NumberStyles.HexNumber)
-
-            Alpha = A
-            Return New RGB(R, G, B)
+            Return ParseStringHexData(Hex_Data, Alpha)
         End Function
 
         Private Function CorrectLAB(Value As Double) As Double
@@ -1368,311 +1351,6 @@ Namespace GeonBit.UI.Entities
 
         Private Function ReverseLAB(Value As Double) As Double
             Return (Value + 128)
-        End Function
-
-        Private Function HSBToColor(HSB As HSB) As Color
-            Return RGBToColor(HSBToRGB(HSB))
-        End Function
-
-        Private Function LABToColor(LAB As LAB) As Color
-            Return RGBToColor(LABToRGB(LAB))
-        End Function
-
-        Private Function LABToRGB(LAB As LAB) As RGB
-            Return XYZToRGB(LABtoXYZ(LAB))
-        End Function
-
-        Private Function LABToHSB(LAB As LAB) As HSB
-            Return RGBToHSB(LABToRGB(LAB))
-        End Function
-
-        Private Function RGBToLAB(RGB As RGB) As LAB
-            Return XYZToLAB(RGBToXYZ(RGB))
-        End Function
-
-        Public Function LABtoXYZ(LAB As LAB) As XYZ
-            Dim X, Y, Z As New Double
-            Y = ((LAB.L + 16.0) / 116.0)
-            X = ((LAB.A / 500.0) + Y)
-            Z = (Y - (LAB.B / 200.0))
-
-            Dim Pow_X = Math.Pow(X, 3.0)
-            Dim Pow_Y = Math.Pow(Y, 3.0)
-            Dim Pow_Z = Math.Pow(Z, 3.0)
-
-            Dim Less = (216 / 24389)
-
-            If (Pow_X > Less) Then
-                X = Pow_X
-            Else
-                X = ((X - (16.0 / 116.0)) / 7.787)
-            End If
-            If (Pow_Y > Less) Then
-                Y = Pow_Y
-            Else
-                Y = ((Y - (16.0 / 116.0)) / 7.787)
-            End If
-            If (Pow_Z > Less) Then
-                Z = Pow_Z
-            Else
-                Z = ((Z - (16.0 / 116.0)) / 7.787)
-            End If
-
-            Return New XYZ((X * 95.047), (Y * 100.0), (Z * 108.883))
-        End Function
-
-        Private Function XYZToRGB(XYZ As XYZ) As RGB
-            Dim X, Y, Z As New Double
-            Dim R, G, B As New Double
-            Dim Pow As Double = (1.0 / 2.4)
-            Dim Less As Double = 0.0031308
-
-            X = (XYZ.X / 100)
-            Y = (XYZ.Y / 100)
-            Z = (XYZ.Z / 100)
-
-            R = ((X * 3.24071) + (Y * -1.53726) + (Z * -0.498571))
-            G = ((X * -0.969258) + (Y * 1.87599) + (Z * 0.0415557))
-            B = ((X * 0.0556352) + (Y * -0.203996) + (Z * 1.05707))
-
-            If (R > Less) Then
-                R = ((1.055 * Math.Pow(R, Pow)) - 0.055)
-            Else
-                R *= 12.92
-            End If
-            If (G > Less) Then
-                G = ((1.055 * Math.Pow(G, Pow)) - 0.055)
-            Else
-                G *= 12.92
-            End If
-            If (B > Less) Then
-                B = ((1.055 * Math.Pow(B, Pow)) - 0.055)
-            Else
-                B *= 12.92
-            End If
-
-            Return New RGB((R * 255), (G * 255), (B * 255))
-        End Function
-
-        Private Function RGBToXYZ(RGB As RGB) As XYZ
-            Dim X, Y, Z As New Double
-            Dim R, G, B As New Double
-            Dim Less As Double = 0.04045
-
-            R = (RGB.R / 255)
-            G = (RGB.G / 255)
-            B = (RGB.B / 255)
-
-            If (R > Less) Then
-                R = Math.Pow(((R + 0.055) / 1.055), 2.4)
-            Else
-                R = (R / 12.92)
-            End If
-            If (G > Less) Then
-                G = Math.Pow(((G + 0.055) / 1.055), 2.4)
-            Else
-                G = (G / 12.92)
-            End If
-            If (B > Less) Then
-                B = Math.Pow(((B + 0.055) / 1.055), 2.4)
-            Else
-                B = (B / 12.92)
-            End If
-
-            X = ((R * 0.4124) + (G * 0.3576) + (B * 0.1805))
-            Y = ((R * 0.2126) + (G * 0.7152) + (B * 0.0722))
-            Z = ((R * 0.0193) + (G * 0.1192) + (B * 0.9505))
-
-            Return New XYZ(X * 100, Y * 100, Z * 100)
-        End Function
-
-        Private Function XYZToLAB(XYZ As XYZ) As LAB
-            Dim X, Y, Z As New Double
-            Dim L, A, B As New Double
-            Dim Less As Double = 0.008856
-            Dim Pow As Double = (1.0 / 3.0)
-
-            X = ((XYZ.X / 100) / 0.9505)
-            Y = (XYZ.Y / 100)
-            Z = ((XYZ.Z / 100) / 1.089)
-
-            If (X > Less) Then
-                X = Math.Pow(X, Pow)
-            Else
-                X = ((7.787 * X) + (16.0 / 116.0))
-            End If
-            If (Y > Less) Then
-                Y = Math.Pow(Y, Pow)
-            Else
-                Y = ((7.787 * Y) + (16.0 / 116.0))
-            End If
-            If (Z > Less) Then
-                Z = Math.Pow(Z, Pow)
-            Else
-                Z = ((7.787 * Z) + (16.0 / 116.0))
-            End If
-
-            L = ((116.0 * Y) - 16.0)
-            A = (500.0 * (X - Y))
-            B = (200.0 * (Y - Z))
-
-            Return New LAB(CInt(L), CInt(A), CInt(B))
-        End Function
-
-        Public Shared Function HSBToRGB(HSB As HSB) As RGB
-            Select Case 0.0
-                Case HSB.S
-                    Return New RGB((HSB.B * 255), (HSB.B * 255), (HSB.B * 255))
-                Case HSB.B
-                    Return New RGB(0, 0, 0)
-                Case Else
-                    Dim R, G, B As New Double
-                    Dim H2 As Double = (HSB.H * 6.0)
-                    Dim H2Floor As Integer = CInt(Math.Floor(H2))
-                    Dim [Mod] As Double = (H2 - H2Floor)
-                    Dim v1 As Double = (HSB.B * (1.0 - HSB.S))
-                    Dim v2 As Double = (HSB.B * (1.0 - (HSB.S * [Mod])))
-                    Dim v3 As Double = (HSB.B * (1.0 - (HSB.S * (1.0 - [Mod]))))
-
-                    Select Case (H2Floor + 1)
-                        Case 0
-                            R = HSB.B
-                            G = v1
-                            B = v2
-                        Case 1
-                            R = HSB.B
-                            G = v3
-                            B = v1
-                        Case 2
-                            R = v2
-                            G = HSB.B
-                            B = v1
-                        Case 3
-                            R = v1
-                            G = HSB.B
-                            B = v3
-                        Case 4
-                            R = v1
-                            G = v2
-                            B = HSB.B
-                        Case 5
-                            R = v3
-                            G = v1
-                            B = HSB.B
-                        Case 6
-                            R = HSB.B
-                            G = v1
-                            B = v2
-                        Case 7
-                            R = HSB.B
-                            G = v3
-                            B = v1
-                    End Select
-
-                    Return New RGB((R * 255), (G * 255), (B * 255))
-            End Select
-        End Function
-
-        Public Function RGBToHSB(RGB As RGB) As HSB
-            Dim R, G, B As New Double
-            Dim H, S, V As New Double
-            Dim Max, Min, Delta As New Double
-
-            R = (RGB.R / 255)
-            G = (RGB.G / 255)
-            B = (RGB.B / 255)
-
-            Max = Math.Max(R, Math.Max(G, B))
-            Min = Math.Min(R, Math.Min(G, B))
-            Delta = (Max - Min)
-            V = Max
-
-            If (Delta = 0) Then
-                H = 0
-                S = 0
-            Else
-                S = (Delta / Max)
-
-                Dim Delta_R, Delta_G, Delta_B As New Double
-                Delta_R = ((((Max - R) / 6) + (Max / 2)) / Delta)
-                Delta_G = ((((Max - G) / 6) + (Max / 2)) / Delta)
-                Delta_B = ((((Max - B) / 6) + (Max / 2)) / Delta)
-
-                Select Case Max
-                    Case R
-                        H = (Delta_B - Delta_G)
-                    Case G
-                        H = ((1 / 3) + (Delta_R - Delta_B))
-                    Case B
-                        H = ((2 / 3) + (Delta_G - Delta_R))
-                End Select
-
-                Select Case H
-                    Case < 0
-                        H += 1
-                    Case > 1
-                        H -= 1
-                End Select
-            End If
-
-            Return New HSB(H, S, V)
-        End Function
-
-        Public Shared Function RGBToCMYK(RGB As RGB) As CMYK
-            Dim R As Double = (RGB.R / 255)
-            Dim G As Double = (RGB.G / 255)
-            Dim B As Double = (RGB.B / 255)
-
-            Dim K As Double = (1 - Math.Max(Math.Max(R, G), B))
-            Dim C As Double = (1 - R - K) / (1 - K)
-            Dim M As Double = (1 - G - K) / (1 - K)
-            Dim Y As Double = (1 - B - K) / (1 - K)
-
-            Return New CMYK(C, M, Y, K)
-        End Function
-
-        Public Function CMYKToHSB(CMYK As CMYK) As HSB
-            Return RGBToHSB(CMYKToRGB(CMYK))
-        End Function
-
-        Public Function CMYKToRGB(CMYK As CMYK) As RGB
-            Dim R As Double = ((1 - CMYK.C) * (1 - CMYK.K))
-            Dim G As Double = ((1 - CMYK.M) * (1 - CMYK.K))
-            Dim B As Double = ((1 - CMYK.Y) * (1 - CMYK.K))
-
-            Return New RGB(R, G, B)
-        End Function
-
-        Public Function CMYKToColor(CMYK As CMYK) As Color
-            Return RGBToColor(CMYKToRGB(CMYK))
-        End Function
-
-        Public Function GetNearestWebSafeColor(Color As Color) As Color
-            Return New Color(CInt(Math.Round((Convert.ToInt32(Color.R) / 255) * 5) * 51), CInt(Math.Round((Convert.ToInt32(Color.G) / 255) * 5) * 51), CInt(Math.Round((Convert.ToInt32(Color.B) / 255) * 5) * 51))
-        End Function
-
-        Public Function GetNearestWebSafeColor(RGB As RGB) As RGB
-            Return New RGB(CInt(Math.Round((RGB.R / 255) * 5) * 51), CInt(Math.Round((RGB.G / 255) * 5) * 51), CInt((Math.Round(RGB.B / 255) * 5) * 51))
-        End Function
-
-        Public Function XNAColorToSystemColor(Color As Color) As System.Drawing.Color
-            Return System.Drawing.Color.FromArgb(Color.A, Color.R, Color.G, Color.B)
-        End Function
-
-        Public Function RGBToColor(RGB As RGB) As Color
-            Return New Color(CInt(RGB.R), CInt(RGB.G), CInt(RGB.B), CInt(RGB.A))
-        End Function
-
-        Function ColorToRGB(Color As Color) As RGB
-            Return New RGB(Convert.ToInt32(Color.R), Convert.ToInt32(Color.G), Convert.ToInt32(Color.B), Convert.ToInt32(Color.A))
-        End Function
-
-        Function ColorToRGB(R As Double, G As Double, B As Double) As RGB
-            Return New RGB(R, G, B)
-        End Function
-
-        Function ColorToRGB(R As Double, G As Double, B As Double, A As Double) As RGB
-            Return New RGB(R, G, B, A)
         End Function
 
 #End Region
@@ -1718,346 +1396,6 @@ Namespace GeonBit.UI.Entities
         Blue_Yellow
     End Enum
 
-#Region "Color Classes"
 
-    ''' <summary>
-    ''' <para>The Default XNA Color class has a problematic behavior with fractions being considered % of the max 255 color value.</para>
-    ''' <para>Which means that any decimal number is considered a fraction even when it is larger than 1.</para>
-    ''' <para>This class solves those problems and maintains precision that might otherwise be lost in conversion.</para>
-    ''' </summary>
-    Public Class RGB
-        Public ReadOnly Min As Double = 0.0
-        Public ReadOnly Max As Double = 255.0
-
-        Public Sub New()
-        End Sub
-
-        Public Sub New(R As Double, G As Double, B As Double)
-            Me.R = R
-            Me.G = G
-            Me.B = B
-        End Sub
-
-        Public Sub New(R As Double, G As Double, B As Double, A As Double)
-            Me.R = R
-            Me.G = G
-            Me.B = B
-            Me.A = A
-        End Sub
-
-        Public Sub New(Color As Color)
-            Me.R = Convert.ToInt32(Color.R)
-            Me.G = Convert.ToInt32(Color.G)
-            Me.B = Convert.ToInt32(Color.B)
-            Me.A = Convert.ToInt32(Color.A)
-        End Sub
-
-        Private _R As New Double
-        Private _G As New Double
-        Private _B As New Double
-        Private _A As Double = Max
-
-        Public Property R As Double
-            Get
-                Return _R
-            End Get
-            Set
-                _R = LimitInRange(Value, Min, Max)
-            End Set
-        End Property
-
-        Public Property G As Double
-            Get
-                Return _G
-            End Get
-            Set
-                _G = LimitInRange(Value, Min, Max)
-            End Set
-        End Property
-
-        Public Property B As Double
-            Get
-                Return _B
-            End Get
-            Set
-                _B = LimitInRange(Value, Min, Max)
-            End Set
-        End Property
-
-        Public Property A As Double
-            Get
-                Return _A
-            End Get
-            Set
-                _A = LimitInRange(Value, Min, Max)
-            End Set
-        End Property
-
-        Overrides Function ToString() As String
-            Return (_R.ToString & ":"c & _G.ToString & ":"c & _B.ToString & ":"c & _A.ToString)
-        End Function
-
-        Public Shared Operator =(Left As RGB, Right As RGB) As Boolean
-            If ((Left.R = Right.R) AndAlso (Left.G = Right.G) AndAlso (Left.B = Right.B) AndAlso (Left.A = Right.A)) Then
-                Return True
-            Else
-                Return False
-            End If
-        End Operator
-
-        Public Shared Operator <>(Left As RGB, Right As RGB) As Boolean
-            Return (Not (Left = Right))
-        End Operator
-
-    End Class
-
-    Public Class XYZ
-        Public ReadOnly Min As Double = 0
-
-        Public Sub New()
-        End Sub
-
-        Public Sub New(X As Double, Y As Double, Z As Double)
-            Me.X = X
-            Me.Y = Y
-            Me.Z = Z
-        End Sub
-
-        Private _X As New Double
-        Private _Y As New Double
-        Private _Z As New Double
-
-        Public Property X As Double
-            Get
-                Return _X
-            End Get
-            Set
-                _X = LimitInRange(Value, Min, 95.05)
-            End Set
-        End Property
-
-        Public Property Y As Double
-            Get
-                Return _Y
-            End Get
-            Set
-                _Y = LimitInRange(Value, Min, 100)
-            End Set
-        End Property
-
-        Public Property Z As Double
-            Get
-                Return _Z
-            End Get
-            Set
-                _Z = LimitInRange(Value, Min, 108.9)
-            End Set
-        End Property
-
-        Overrides Function ToString() As String
-            Return (_X.ToString & ":"c & _Y.ToString & ":"c & _Z.ToString)
-        End Function
-
-    End Class
-
-    Public Class LAB
-        Public ReadOnly Min As Double = -128
-        Public ReadOnly Max As Double = 127
-
-        Sub New()
-        End Sub
-
-        Sub New(L As Double, A As Double, B As Double)
-            Me.L = L
-            Me.A = A
-            Me.B = B
-        End Sub
-
-        Private _L As New Double
-        Private _A As New Double
-        Private _B As New Double
-
-        Property L As Double
-            Get
-                Return _L
-            End Get
-            Set
-                _L = LimitInRange(Value, 0, 100)
-            End Set
-        End Property
-
-        Property A As Double
-            Get
-                Return _A
-            End Get
-            Set
-                _A = LimitInRange(Value, Min, Max)
-            End Set
-        End Property
-
-        Property B As Double
-            Get
-                Return _B
-            End Get
-            Set
-                _B = LimitInRange(Value, Min, Max)
-            End Set
-        End Property
-
-        Overrides Function ToString() As String
-            Return (_L.ToString & ":"c & _A.ToString & ":"c & _B.ToString)
-        End Function
-
-    End Class
-
-    Public Class HSB
-        Public ReadOnly Min As Double = 0
-        Public ReadOnly Max As Double = 1
-
-        Public Sub New()
-        End Sub
-
-        Public Sub New(H As Double, S As Double, B As Double)
-            Me.H = H
-            Me.S = S
-            Me.B = B
-        End Sub
-
-        Private _H As New Double
-        Private _S As New Double
-        Private _B As New Double
-
-        Public Property H As Double
-            Get
-                Return _H
-            End Get
-            Set
-                _H = LimitInRange(Value, Min, Max)
-            End Set
-        End Property
-
-        Public Property S As Double
-            Get
-                Return _S
-            End Get
-            Set
-                _S = LimitInRange(Value, Min, Max)
-            End Set
-        End Property
-
-        Public Property B As Double
-            Get
-                Return _B
-            End Get
-            Set
-                _B = LimitInRange(Value, Min, Max)
-            End Set
-        End Property
-
-        Overrides Function ToString() As String
-            Return (_H.ToString & ":"c & _S.ToString & ":"c & _B.ToString)
-        End Function
-
-        Public Shared Operator =(Left As HSB, Right As HSB) As Boolean
-            If ((Left.H = Right.H) AndAlso (Left.S = Right.S) AndAlso (Left.B = Right.B)) Then
-                Return True
-            Else
-                Return False
-            End If
-        End Operator
-
-        Public Shared Operator <>(Left As HSB, Right As HSB) As Boolean
-            Return (Not (Left = Right))
-        End Operator
-
-    End Class
-
-    Public Class CMYK
-        Public ReadOnly Min As Double = 0
-        Public ReadOnly Max As Double = 1
-
-        Public Sub New()
-        End Sub
-
-        Public Sub New(C As Double, M As Double, Y As Double, K As Double)
-            Me.C = C
-            Me.M = M
-            Me.Y = Y
-            Me.K = K
-        End Sub
-
-        Private _C As New Double
-        Private _M As New Double
-        Private _Y As New Double
-        Private _K As New Double
-
-        Public Property C As Double
-            Get
-                Return _C
-            End Get
-            Set
-                _C = LimitInRange(Value, Min, Max)
-            End Set
-        End Property
-
-        Public Property M As Double
-            Get
-                Return _M
-            End Get
-            Set
-                _M = LimitInRange(Value, Min, Max)
-            End Set
-        End Property
-
-        Public Property Y As Double
-            Get
-                Return _Y
-            End Get
-            Set
-                _Y = LimitInRange(Value, Min, Max)
-            End Set
-        End Property
-
-        Public Property K As Double
-            Get
-                Return _K
-            End Get
-            Set
-                _K = LimitInRange(Value, Min, Max)
-            End Set
-        End Property
-
-        Overrides Function ToString() As String
-            Return (_C.ToString & ":"c & _M.ToString & ":"c & _Y.ToString & ":"c & _K.ToString)
-        End Function
-
-    End Class
-
-#End Region
-
-    Module MathExtensions
-
-        <Extension()>
-        Function LimitInRange(Value As Double, Min As Double, Max As Double) As Double
-            Select Case Value
-                Case <= Min
-                    Return Min
-                Case >= Max
-                    Return Max
-                Case Else
-                    If IsNanOrInfinity(Value) Then
-                        Return 0.0
-                    Else
-                        Return Value
-                    End If
-            End Select
-        End Function
-
-        <Extension()>
-        Public Function IsNanOrInfinity(Value As Double) As Boolean
-            Return Double.IsNaN(Value) OrElse Double.IsInfinity(Value)
-        End Function
-
-    End Module
 
 End Namespace

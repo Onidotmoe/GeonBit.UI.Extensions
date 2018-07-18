@@ -1,12 +1,4 @@
-﻿Imports System.Collections.Generic
-Imports GeonBit.UI
-Imports GeonBit.UI.Entities
-Imports Microsoft.VisualBasic
-Imports Microsoft.Xna.Framework
-Imports Microsoft.Xna.Framework.Graphics
-Imports MonoGame.Extended
-
-Namespace Extensions.Minor
+﻿Namespace Extensions.Minor
 
     'Public Class TextInput
     '    Inherits Entities.TextInput
@@ -30,7 +22,7 @@ Namespace Extensions.Minor
     '        _value = Value
     '    End Sub
 
-    '    ''' <summary>The actual displayed text, after wordwrap And other processing. 
+    '    ''' <summary>The actual displayed text, after wordwrap And other processing.
     '    ''' note: only the text currently visible by scrollbar.</summary>
     '    Dim _actualDisplayText As String = String.Empty
     '    ''' <summary>
@@ -60,7 +52,6 @@ Namespace Extensions.Minor
     '        '    If (MouseDown_PositionStart.X <> MouseDown_PositionEnd.X) Then
     '        '        Dim Relative_X = (_offset - MouseDown_PositionStart)
 
-
     '        '        Selection_Start = CInt(Relative_X.X * TextParagraph.Size.X)
 
     '        '        HasSelection = True
@@ -72,16 +63,12 @@ Namespace Extensions.Minor
     '        'End If
     '    End Sub
 
-
     '    Private Sub HandleSelection(SpriteBatch As SpriteBatch)
     '        If HasSelection Then
 
-
     '            'If HasSelection Then
 
-
     '            '  Dim SelectionRectangle As New RectangleF(,, (Size.X *), (Size.Y * 0.8))
-
 
     '            SpriteBatch.Begin()
     '            'ShapeExtensions.FillRectangle(spriteBatch, SelectionRectangle, SelectedHighlightColor)
@@ -145,8 +132,6 @@ Namespace Extensions.Minor
     '        TextParagraph.Visible = Not showPlaceholder
     '        PlaceholderParagraph.Visible = showPlaceholder
     '    End Sub
-
-
 
     'End Class
 

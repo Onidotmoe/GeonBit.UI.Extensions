@@ -4,7 +4,7 @@ Imports GeonBit.UI.Entities
 Imports Microsoft.Xna.Framework
 Imports Microsoft.Xna.Framework.Graphics
 
-Namespace GeonBit.UI.Entities
+Namespace Extensions
 
     Public Enum SliderVerticalSkin
         [Default] = 0
@@ -23,7 +23,8 @@ Namespace GeonBit.UI.Entities
 
         ''' <summary>Currently calculated destination rect (eg the region this entity Is drawn on).</summary>
         Public Shadows _destRect As Rectangle
-
+        ''' <summary>Default styling for the SliderVertical itself. Note: loaded from UI theme xml file.</summary>
+        Public Shared Shadows DefaultStyle As New StyleSheet
         ''' <summary>Default slider size for when no size Is provided Or when -1 Is set for either width Or height.</summary>
         Public Shadows DefaultSize As Vector2 = New Vector2(30.0F, 0F)
 
@@ -105,12 +106,12 @@ Namespace GeonBit.UI.Entities
 
         ''' <summary>Draw the entity.</summary>
         ''' <param name="spriteBatch">Sprite batch to draw on.</param>
-        Protected Overrides Sub DrawEntity(ByVal spriteBatch As SpriteBatch)
-            Dim Texture As Texture2D = Game.Instance.Extender.SliderVerticalTextures(_skin)
-            Dim MarkTexture As Texture2D = Game.Instance.Extender.SliderVerticalMarkTextures(_skin)
-            Dim Data As DataTypes.TextureData = Game.Instance.Extender.SliderVerticalData(CInt(_skin))
+        Protected Overrides Sub DrawEntity(SpriteBatch As SpriteBatch, Phase As DrawPhase)
+            Dim Texture As Texture2D = YOURGAME.Extender.SliderVerticalTextures(_skin)
+            Dim MarkTexture As Texture2D = YOURGAME.Extender.SliderVerticalMarkTextures(_skin)
+            Dim Data As DataTypes.TextureData = YOURGAME.Extender.SliderVerticalData(CInt(_skin))
             Dim FrameHeight As Single = Data.FrameHeight
-            UserInterface.Active.DrawUtils.DrawSurface(spriteBatch, Texture, _destRect, New Vector2(0F, FrameHeight), 1, FillColor)
+            UserInterface.Active.DrawUtils.DrawSurface(SpriteBatch, Texture, _destRect, New Vector2(0F, FrameHeight), 1, FillColor)
             Dim frameSizeTexture As Vector2 = New Vector2(Texture.Width, Texture.Height * FrameHeight)
             Dim frameSizeRender As Vector2 = frameSizeTexture
             Dim ScaleYfac As Single = _destRect.Width / frameSizeRender.X
@@ -121,7 +122,7 @@ Namespace GeonBit.UI.Entities
             ' _destRect.X - 1, has to happen as there's an offset that needs to be compensated
             ' TODO : Figure out why the offset is there to begin with
             Dim markDest As Rectangle = New Rectangle(_destRect.X - 1, CInt(CInt(Math.Round(markY)) - _markHeight / 2), markWidth, _markHeight)
-            UserInterface.Active.DrawUtils.DrawImage(spriteBatch, MarkTexture, markDest, FillColor)
+            UserInterface.Active.DrawUtils.DrawImage(SpriteBatch, MarkTexture, markDest, FillColor)
         End Sub
 
         ''' <summary>

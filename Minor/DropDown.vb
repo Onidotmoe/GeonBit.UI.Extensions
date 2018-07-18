@@ -1,8 +1,6 @@
 ﻿Imports System
-Imports System.Collections.Generic
 Imports GeonBit.UI
 Imports GeonBit.UI.Entities
-Imports Microsoft.VisualBasic
 Imports Microsoft.Xna.Framework
 Imports Microsoft.Xna.Framework.Graphics
 
@@ -11,6 +9,7 @@ Namespace Extensions.Minor
     Public Class DropDown
         Inherits Entity
 
+        Public OnDropDownVisibilityChanged As EventCallback
         Public Sub New(ByVal size As Vector2, Optional PlaceholderText As String = Nothing, ByVal Optional anchor As Anchor = Anchor.Auto, ByVal Optional offset As Vector2? = Nothing, ByVal Optional skin As PanelSkin = PanelSkin.ListBackground, ByVal Optional listSkin As PanelSkin? = Nothing, ByVal Optional showArrow As Boolean = True)
             MyBase.New(size, anchor, offset)
             'Additions
@@ -19,42 +18,43 @@ Namespace Extensions.Minor
             End If
 
 #Region "Un-Changed"
-            Padding = Vector2.Zero
             UseActualSizeForCollision = True
-            _selectedTextPanel = New Panel(New Vector2(0, SelectedPanelHeight), skin, Anchor.TopLeft)
-            _selectedTextParagraph = UserInterface.DefaultParagraph(String.Empty, Anchor.CenterLeft)
-            _selectedTextParagraph.UseActualSizeForCollision = False
-            _selectedTextParagraph.UpdateStyle(Extensions.Minor.SelectList.DefaultParagraphStyle)
-            _selectedTextParagraph.UpdateStyle(DefaultParagraphStyle)
-            _selectedTextParagraph.UpdateStyle(DefaultSelectedParagraphStyle)
-            _selectedTextPanel.AddChild(_selectedTextParagraph, True)
-            _arrowDownImage = New Image(Resources.ArrowDown, New Vector2(ArrowSize, ArrowSize), ImageDrawMode.Stretch, Anchor.CenterRight, New Vector2(-10, 0))
-            _selectedTextPanel.AddChild(_arrowDownImage, True)
-            _arrowDownImage.Visible = showArrow
-            _selectList = New Extensions.Minor.SelectList(New Vector2(0F, size.Y), Anchor.TopCenter, Vector2.Zero, If(listSkin, skin))
-            _selectList.SetOffset(New Vector2(0, SelectedPanelHeight))
-            _selectList.SpaceBefore = Vector2.Zero
-            AddChild(_selectedTextPanel)
-            AddChild(_selectList)
+            SelectedTextPanel = New Panel(New Vector2(0, SelectedPanelHeight), skin, Anchor.TopLeft)
+            SelectedTextPanelParagraph = UserInterface.DefaultParagraph(String.Empty, Anchor.CenterLeft)
+            SelectedTextPanelParagraph.UseActualSizeForCollision = False
+            SelectedTextPanelParagraph.UpdateStyle(Extensions.Minor.SelectList.DefaultParagraphStyle)
+            SelectedTextPanelParagraph.UpdateStyle(DefaultParagraphStyle)
+            SelectedTextPanelParagraph.UpdateStyle(DefaultSelectedParagraphStyle)
+            SelectedTextPanel.AddChild(SelectedTextPanelParagraph, True)
+            ArrowDownImage = New Image(Resources.ArrowDown, New Vector2(ArrowSize, ArrowSize), ImageDrawMode.Stretch, Anchor.CenterRight, New Vector2(-10, 0))
+            SelectedTextPanel.AddChild(ArrowDownImage, True)
+            ArrowDownImage.Visible = showArrow
+#End Region
+            SelectList = New Extensions.Minor.SelectList(New Vector2(0F, size.Y), Anchor.TopCenter, Vector2.Zero, If(listSkin, skin))
+#Region "Un-Changed"
+            SelectList.SetOffset(New Vector2(0, SelectedPanelHeight))
+            SelectList.SpaceBefore = Vector2.Zero
+            AddChild(SelectedTextPanel)
+            AddChild(SelectList)
 
-            _selectList.OnValueChange = Sub(ByVal entity As Entity)
-                                            ListVisible = False
-                                            _selectedTextParagraph.Text = (If(SelectedValue, DefaultText))
+            SelectList.OnValueChange = Sub(ByVal entity As Entity)
+                                           ListVisible = False
+                                           SelectedTextPanelParagraph.Text = (If(SelectedValue, DefaultText))
+                                       End Sub
+
+            SelectList.OnClick = Sub(ByVal entity As Entity)
+                                     ListVisible = False
+                                 End Sub
+
+            SelectList.Visible = False
+            SelectedTextPanel.OnClick = Sub(ByVal self As Entity)
+                                            ListVisible = Not ListVisible
                                         End Sub
 
-            _selectList.OnClick = Sub(ByVal entity As Entity)
-                                      ListVisible = False
-                                  End Sub
-
-            _selectList.Visible = False
-            _selectedTextPanel.OnClick = Sub(ByVal self As Entity)
-                                             ListVisible = Not ListVisible
-                                         End Sub
-
-            _selectedTextParagraph.Text = (If(SelectedValue, DefaultText))
-            _selectList.UpdateStyle(DefaultStyle)
-            _selectList.PropagateEventsTo(Me)
-            _selectedTextPanel.PropagateEventsTo(Me)
+            SelectedTextPanelParagraph.Text = (If(SelectedValue, DefaultText))
+            SelectList.UpdateStyle(DefaultStyle)
+            SelectList.PropagateEventsTo(Me)
+            SelectedTextPanel.PropagateEventsTo(Me)
 #End Region
 
             'Additions
@@ -65,16 +65,20 @@ Namespace Extensions.Minor
         End Sub
         Public Property ListVisible As Boolean
             Get
-                Return _selectList.Visible
+                Return SelectList.Visible
             End Get
             Set(ByVal value As Boolean)
                 'Additions
-                If (Not (_selectList.Visible AndAlso (Not IsInsideEntity(GetMousePos())))) Then
-                    _selectList.Visible = value
+                If (Not (SelectList.Visible AndAlso (Not IsInsideEntity(GetMousePos())))) Then
+                    SelectList.Visible = value
                     OnDropDownVisibilityChange()
                 End If
             End Set
         End Property
+
+        Protected Overridable Sub DoOnDropDownVisibilityChanged()
+            OnDropDownVisibilityChanged?.Invoke(Me)
+        End Sub
 
 #Region "Un-Changed"
 
@@ -84,7 +88,7 @@ Namespace Extensions.Minor
             End Get
             Set(ByVal value As String)
                 _placeholderText = value
-                If SelectedIndex = -1 Then _selectedTextParagraph.Text = _placeholderText
+                If SelectedIndex = -1 Then SelectedTextPanelParagraph.Text = _placeholderText
             End Set
         End Property
 
@@ -93,44 +97,20 @@ Namespace Extensions.Minor
         Public Shared DefaultParagraphStyle As StyleSheet = New StyleSheet()
         Public Shared DefaultSelectedParagraphStyle As StyleSheet = New StyleSheet()
         Public Shared Shadows DefaultSize As Vector2 = New Vector2(0F, 220.0F)
-        Private _selectedTextPanel As Panel
-        Private _selectedTextParagraph As Paragraph
-        Private _arrowDownImage As Image
-        Private _selectList As Extensions.Minor.SelectList
 
         Public ReadOnly Property SelectedTextPanel As Panel
-            Get
-                Return _selectedTextPanel
-            End Get
-        End Property
 
         Public Property AllowReselectValue As Boolean
             Get
-                Return _selectList.AllowReselectValue
+                Return SelectList.AllowReselectValue
             End Get
             Set(ByVal value As Boolean)
-                _selectList.AllowReselectValue = value
+                SelectList.AllowReselectValue = value
             End Set
         End Property
-
-        Public ReadOnly Property SelectList As Extensions.Minor.SelectList
-            Get
-                Return _selectList
-            End Get
-        End Property
-
+        Public Property SelectList As Extensions.Minor.SelectList
         Public ReadOnly Property SelectedTextPanelParagraph As Paragraph
-            Get
-                Return _selectedTextParagraph
-            End Get
-        End Property
-
         Public ReadOnly Property ArrowDownImage As Image
-            Get
-                Return _arrowDownImage
-            End Get
-        End Property
-
         Public Shared SelectedPanelHeight As Integer = 67
         Public AutoSetListHeight As Boolean = False
         Public Shared ArrowSize As Integer = 30
@@ -140,24 +120,22 @@ Namespace Extensions.Minor
             ListVisible = False
             MyBase.DoOnValueChange()
         End Sub
-
         Protected Overrides Function GetDestRectForAutoAnchors() As Rectangle
-            _selectedTextPanel.UpdateDestinationRectsIfDirty()
-            Return _selectedTextPanel.GetActualDestRect()
+            SelectedTextPanel.UpdateDestinationRectsIfDirty()
+            Return SelectedTextPanel.GetActualDestRect()
         End Function
-
         Public Overrides Function IsInsideEntity(ByVal point As Vector2) As Boolean
             point += _lastScrollVal.ToVector2()
             Dim rect As Rectangle
 
             If ListVisible Then
-                _selectList.UpdateDestinationRectsIfDirty()
-                rect = _selectList.GetActualDestRect()
+                SelectList.UpdateDestinationRectsIfDirty()
+                rect = SelectList.GetActualDestRect()
                 rect.Height += SelectedPanelHeight
                 rect.Y -= SelectedPanelHeight
             Else
-                _selectedTextPanel.UpdateDestinationRectsIfDirty()
-                rect = _selectedTextPanel.GetActualDestRect()
+                SelectedTextPanel.UpdateDestinationRectsIfDirty()
+                rect = SelectedTextPanel.GetActualDestRect()
             End If
 
             Return (point.X >= rect.Left AndAlso point.X <= rect.Right AndAlso point.Y >= rect.Top AndAlso point.Y <= rect.Bottom)
@@ -170,17 +148,23 @@ Namespace Extensions.Minor
         End Property
 
         Private Sub OnDropDownVisibilityChange()
-            _arrowDownImage.Texture = If(ListVisible, Resources.ArrowUp, Resources.ArrowDown)
-            _selectList.IsFocused = True
-            UserInterface.Active.ActiveEntity = _selectList
-            _selectList.UpdateDestinationRects()
-            If _selectList.Visible Then _selectList.ScrollToSelected()
+            ArrowDownImage.Texture = If(ListVisible, Resources.ArrowUp, Resources.ArrowDown)
+            SelectList.IsFocused = True
+            UserInterface.Active.ActiveEntity = SelectList
+            SelectList.UpdateDestinationRects()
+            If SelectList.Visible Then
+                SelectList.ScrollToSelected()
+            End If
             MarkAsDirty()
 
             If AutoSetListHeight Then
-                _selectList.MatchHeightToList()
+                SelectList.MatchHeightToList()
             End If
+#End Region
+            OnDropDownVisibilityChanged?.Invoke(Me)
         End Sub
+
+#Region "Un-Changed"
 
         Protected Shadows Sub DrawEntity(ByVal spriteBatch As SpriteBatch)
         End Sub
@@ -199,64 +183,64 @@ Namespace Extensions.Minor
 
         Public Property SelectedValue As String
             Get
-                Return _selectList.SelectedValue
+                Return SelectList.SelectedValue
             End Get
             Set(ByVal value As String)
-                _selectList.SelectedValue = value
+                SelectList.SelectedValue = value
             End Set
         End Property
 
         Public Property SelectedIndex As Integer
             Get
-                Return _selectList.SelectedIndex
+                Return SelectList.SelectedIndex
             End Get
             Set(ByVal value As Integer)
-                _selectList.SelectedIndex = value
+                SelectList.SelectedIndex = value
             End Set
         End Property
 
         Public Property ScrollPosition As Integer
             Get
-                Return _selectList.ScrollPosition
+                Return SelectList.ScrollPosition
             End Get
             Set(ByVal value As Integer)
-                _selectList.ScrollPosition = value
+                SelectList.ScrollPosition = value
             End Set
         End Property
 
         Public Sub Unselect()
-            _selectList.Unselect()
+            SelectList.Unselect()
         End Sub
 
         Public Sub AddItem(ByVal value As String)
-            _selectList.AddItem(value)
+            SelectList.AddItem(value)
         End Sub
 
         Public Sub AddItem(ByVal value As String, ByVal index As Integer)
-            _selectList.AddItem(value, index)
+            SelectList.AddItem(value, index)
         End Sub
 
         Public Sub RemoveItem(ByVal value As String)
-            _selectList.RemoveItem(value)
+            SelectList.RemoveItem(value)
         End Sub
 
         Public Sub RemoveItem(ByVal index As Integer)
-            _selectList.RemoveItem(index)
+            SelectList.RemoveItem(index)
         End Sub
 
         Public Sub ClearItems()
-            _selectList.ClearItems()
+            SelectList.ClearItems()
         End Sub
 
         Public ReadOnly Property Count As Integer
             Get
-                Return _selectList.Count
+                Return SelectList.Count
             End Get
         End Property
 
         Public ReadOnly Property Empty As Boolean
             Get
-                Return _selectList.Empty
+                Return SelectList.Empty
             End Get
         End Property
 
@@ -265,11 +249,11 @@ Namespace Extensions.Minor
         End Function
 
         Public Sub ScrollToSelected()
-            _selectList.ScrollToSelected()
+            SelectList.ScrollToSelected()
         End Sub
 
         Public Sub scrollToEnd()
-            _selectList.scrollToEnd()
+            SelectList.scrollToEnd()
         End Sub
 #End Region
 

@@ -11,5 +11,4 @@ Namespace Extensions.Minor
 
     End Class
 
-
 End Namespace
