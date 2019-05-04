@@ -97,13 +97,12 @@ Namespace Extensions
         Function GetScreenByID(ID As String) As Screen
             Return Screens.Find(Function(F) F.ID = ID)
         End Function
-        ''' <summary>Sends the MouseInput to the TopMost active Screen and cascades it down until EatsMouse = true.</summary>
         Sub MouseMoved(Current As Vector2, Moved As Vector2)
             Screens(0).MouseMoved(Current, Moved)
 
-            If (Not Screens(0).EatsMouse) Then
+            If (Not Screens(0).EatsCommands) Then
                 For i = 1 To (Screens.Count - 1)
-                    If (Not Screens(i).EatsMouse) Then
+                    If (Not Screens(i).EatsCommands) Then
                         Screens(i).MouseMoved(Current, Moved)
                     Else
                         Exit For
@@ -111,15 +110,14 @@ Namespace Extensions
                 Next
             End If
         End Sub
+        ''' <summary>Cascades the Command down to all Screens from the current Screen until EatsCommands = true</summary>
+        Sub DoCommand(Command As String, ParamArray Objects() As Object)
+            Screens(0).DoCommand(Command, Objects)
 
-        ''' <summary>Sends the MouseInput to the TopMost active Screen and cascades it down until EatsMouse = true.</summary>
-        Sub MousePressed(Pressed As Input.ButtonState)
-            Screens(0).MousePressed(Pressed)
-
-            If (Not Screens(0).EatsMouse) Then
+            If (Not Screens(0).EatsCommands) Then
                 For i = 1 To (Screens.Count - 1)
-                    If (Not Screens(i).EatsMouse) Then
-                        Screens(i).MousePressed(Pressed)
+                    If (Not Screens(i).EatsCommands) Then
+                        Screens(i).DoCommand(Command, Objects)
                     Else
                         Exit For
                     End If

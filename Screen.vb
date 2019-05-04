@@ -9,8 +9,8 @@ Namespace Extensions
         Overridable Property ID As String
         Overridable Property Title As String
         Property InstanceID As Integer
-        ''' <summary>Prevents MouseInput from cascading to the screens below this one.</summary>
-        Property EatsMouse As Boolean = True
+        ''' <summary>Prevents Commands from cascading to the screens below this one.</summary>
+        Property EatsCommands As Boolean
         Sub New()
             MyBase.New(Game.Instance.CurrentSize, anchor:=Anchor.TopLeft)
             PreInit()
@@ -27,8 +27,6 @@ Namespace Extensions
 
             If (Title IsNot Nothing) Then
                 Me.Title = Title
-            Else
-                Me.Title = Globals.Interpreter.GiveString(ID)
             End If
 
             PreInit()
@@ -45,7 +43,6 @@ Namespace Extensions
         End Sub
         Overridable Sub Init()
         End Sub
-
         ''' <summary>Removes this Screen from the ScreenStack</summary>
         Sub Pop()
             Constructor.Screenstack.Pop(Me)
@@ -54,11 +51,7 @@ Namespace Extensions
         Sub Push()
             Constructor.Screenstack.Push(Me)
         End Sub
-
-        Overridable Sub MouseMoved(Current As Vector2, Moved As Vector2)
-        End Sub
-
-        Overridable Sub MousePressed(Button As Input.ButtonState)
-        End Sub
+        Overridable Sub DoCommand(Command As String, ParamArray Objects() As Object) : End Sub
+        Overridable Sub MouseMoved(Current As Vector2, Moved As Vector2) : End Sub
     End Class
 End Namespace
