@@ -13,12 +13,10 @@ Namespace Extensions
 
         Property FPSCounter As FrameCounter
         Property MouseCoordinates As MouseCoordinates
-        Property UnderMouseToolTip As UnderMouseToolTip
         Property SystemUsage As SystemUsage
         Property Timer As Timer
         Property ShowFPS As Boolean
-        Property ShowMousePosition As Boolean
-        Property ShowUnderMouseToolTip As Boolean
+        Property ShowMousePosition As 
         Property ShowSystemUsage As Boolean
         Property ShowTimer As Boolean
 
@@ -27,14 +25,13 @@ Namespace Extensions
             FillColor = Nothing
             ClickThrough = True
 
-            Dim Settings = Tetra.Tetra.GetService(Of Settings.Settings).Defaults.Status
+            Dim Settings = Game.GetService(Of Settings.Settings).Defaults.Status
 
             ShowFPS = Settings.ShowFPS
             ShowMousePosition = Settings.ShowMousePosition
-            ShowUnderMouseToolTip = Settings.ShowUnderMouseToolTip
             ShowSystemUsage = Settings.ShowSystemUsage
             ShowTimer = Settings.ShowTimer
-            AddChild(New Label(Tetra.Tetra.Instance.Version))
+            AddChild(New Label(Game.Instance.Version))
 
             If ShowFPS Then
                 FPSCounter = New FrameCounter()
@@ -43,10 +40,6 @@ Namespace Extensions
             If ShowMousePosition Then
                 MouseCoordinates = New MouseCoordinates()
                 AddChild(MouseCoordinates)
-            End If
-            If ShowUnderMouseToolTip Then
-                UnderMouseToolTip = New UnderMouseToolTip()
-                AddChild(UnderMouseToolTip)
             End If
             If ShowSystemUsage Then
                 SystemUsage = New SystemUsage()
@@ -74,7 +67,7 @@ Namespace Extensions
             Private SampleBuffer As New Queue(Of Single)
 
             Protected Overrides Sub DoBeforeUpdate()
-                Dim DeltaTime = CSng(Tetra.Tetra.Instance.GameTime.ElapsedGameTime.TotalSeconds)
+                Dim DeltaTime = CSng(Game.Instance.GameTime.ElapsedGameTime.TotalSeconds)
                 CurrentFramesPerSecond = (1.0F / DeltaTime)
                 SampleBuffer.Enqueue(CurrentFramesPerSecond)
                 If (SampleBuffer.Count > MAXIMUM_SAMPLES) Then
@@ -261,45 +254,6 @@ Namespace Extensions
             End Sub
 
         End Class
-
-        Class UnderMouseToolTip
-            Inherits Label
-
-            Sub New(Optional Anchor As Anchor = Anchor.Auto, Optional Size As Vector2? = Nothing, Optional Offset As Vector2? = Nothing)
-                MyBase.New(String.Empty, Anchor, Size, Offset)
-            End Sub
-
-            Private CurrentMousePosition As Point
-            Private MousePosition As Vector2
-            Protected Overrides Sub DoBeforeUpdate()
-                Text = "MouseOver : "
-
-                'Mouse isnot inside gamebound
-                If (Not Constructor.Constructor.IsMouseInsideWindow) Then
-                    Exit Sub
-                End If
-                CurrentMousePosition = Mouse.GetState.Position
-                MousePosition = CurrentMousePosition.ToVector2
-
-                'TODO : Fix me!
-                'For Each Tile In Constructor.Constructor.InPlay.Board.Shape.AllTiles
-                '    If Tile.Contains(MousePosition) Then
-                '        Text &= Tile.Floor.ID
-                '        Text &= Tile.HasBlock.ToString
-                '        Exit For
-                '    End If
-                'Next
-                'For Each Piece In Constructor.Constructor.InPlay.Pieces.Values
-                '    If Piece.Contains(MousePosition) Then
-                '        Text = Piece.ID
-                '        Exit For
-                '    End If
-                'Next
-
-                'Text = Globals.Interpreter.GiveDescription(Text)
-            End Sub
-        End Class
-
         Class Timer
             Inherits Label
             Sub New(Optional Anchor As Anchor = Anchor.Auto, Optional Size As Vector2? = Nothing, Optional Offset As Vector2? = Nothing)
@@ -323,27 +277,10 @@ Namespace Extensions
             ''' <summary>
             ''' If second fractions should be displayed.
             ''' </summary>
-            Public Fractions As Boolean = Tetra.Tetra.GetService(Of Settings.Settings).Defaults.Status.Fractions
+            Public Fractions As Boolean = Game.GetService(Of Settings.Settings).Defaults.Status.Fractions
 
             Protected Overrides Sub DoBeforeUpdate()
                 Text = Watch.Elapsed.ToString(If(Fractions, "mm\:ss\:fffffff", "mm\:ss"))
-            End Sub
-
-        End Class
-
-        ''' <summary>
-        ''' Shows how many points will be gained or lost when hovering over a tile with a piece held.
-        ''' </summary>
-        Class Predictor
-            Inherits Entity
-            Shadows Sub BeforeUpdate()
-                'Mouse isnot inside gamebound
-                If (Not Constructor.Constructor.IsMouseInsideWindow) Then
-                    Exit Sub
-                End If
-
-                'TODO :
-
             End Sub
 
         End Class

@@ -1,5 +1,5 @@
 # GeonBit.UI.Extensions
-Control and Functional Extensions for GeonBit.UI. Written in VB.Net by an Amatuer.
+Control and Functional Extensions for [GeonBit.UI](https://github.com/RonenNess/GeonBit.UI). Written in VB.Net by an Amatuer.
 
 ## ColorPicker
 A comprehensive adobe photoshop-like color picker.
@@ -52,6 +52,20 @@ Allows generic Entities to be used for selection.
 ## Border
 A generic colored border to be placed ontop of entities, which also do not exceed the entity's own boundaries. 
 *demonstrated in the SelectFont.*
+
+## Screen
+Represents a Screen Entity, inherits from Panel. Makes it easier to manage different UI elements groupped together, like Menus, HUD.
+Removing a Screen is Easy using Screen.Pop() and adding a Screen is just as easy Screen.Push, which places the Screen in the top of the ScreenStack.
+I've found it easiest to inherit from this class and then add your custom Screen to the Screenstack.
+Overriding Init() allows you to do any custom behavior on initialization and still have your default settings applied in PreInit() in the base Screen class.
+
+## ScreenStack
+Allows for easy managements of all Screens, using a Screenstack similar to the one in Xcom 2. Allows for Cascading MouseInput until one Screen Blocks it.
+The Screens are ordered in a simple list, the Top Screen on the stack is the current visible screen. Default behavior shows all below screens in the stack, you can change this if you want, i have found having multiple screens ontop of each other with EatsMouse = false allows for more flexibility.
+You don't have to only use 1 instance of a ScreenStack, you can have as many as you like.
+
+*Mouse Handeling is not final...*
+
 
 ### Note
 Monogame.Extended might be require for some bits of the codebase.
