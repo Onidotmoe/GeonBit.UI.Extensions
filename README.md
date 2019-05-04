@@ -64,9 +64,6 @@ Allows for easy managements of all Screens, using a Screenstack similar to the o
 The Screens are ordered in a simple list, the Top Screen on the stack is the current visible screen. Default behavior shows all below screens in the stack, you can change this if you want, i have found having multiple screens ontop of each other with EatsMouse = false allows for more flexibility.
 You don't have to only use 1 instance of a ScreenStack, you can have as many as you like.
 
-*Mouse Handeling is not final...*
-
-
 ### Note
 Monogame.Extended might be require for some bits of the codebase.
 Currently only targeting Windows but i would like to have complete platform-indepence at some point.
